@@ -30,10 +30,11 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         // Sélection
-        Selection();
+        List<Vector3> selectedCities;
+        selectedCities = Selection();
         
         // Croisement
-        Croisement();
+        Croisement(selectedCities);
         
         // Mutation
         Mutation();
@@ -91,12 +92,19 @@ public class GameManager : MonoBehaviour
         return pathLength;
     }
 
-    private void Selection()
+    private List<Vector3> Selection()
     {
+        // Random
+        int indexP1 = Random.Range(0, currentCities.Count);
+        int indexP2 = Random.Range(0, currentCities.Count);
+
+        Vector3 city1 = currentCities[indexP1];
+        Vector3 city2 = currentCities[indexP2];
         
+        return new List<Vector3>(new []{city1, city2});
     }
 
-    private void Croisement()
+    private void Croisement(List<Vector3> selectedCities)
     {
         
     }
