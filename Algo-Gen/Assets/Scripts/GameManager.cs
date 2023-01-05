@@ -29,6 +29,15 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Sélection
+        Selection();
+        
+        // Croisement
+        Croisement();
+        
+        // Mutation
+        Mutation();
+        
         // Evaluation de la solution finale
         float currentFitness = fitness();
         if (currentFitness < bestFitness)
@@ -80,5 +89,20 @@ public class GameManager : MonoBehaviour
         
 
         return pathLength;
+    }
+
+    private void Selection()
+    {
+        
+    }
+
+    private void Croisement()
+    {
+        
+    }
+
+    private void Mutation()
+    {
+        
     }
 }
