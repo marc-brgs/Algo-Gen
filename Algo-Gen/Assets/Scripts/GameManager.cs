@@ -30,11 +30,11 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         // Sélection
-        List<Vector3> selectedCities;
-        selectedCities = Selection();
+        List<int> selectedCitiesIndex;
+        selectedCitiesIndex = Selection();
         
         // Croisement
-        Croisement(selectedCities);
+        Croisement(selectedCitiesIndex);
         
         // Mutation
         Mutation();
@@ -45,8 +45,12 @@ public class GameManager : MonoBehaviour
         {
             bestFitness = fitness();
             bestGen = gen;
-        }
 
+            bestCities = currentCities;
+            bestLine.SetPositions(bestCities.ToArray());
+        }
+        
+        currentLine.SetPositions(currentCities.ToArray()); // Update line renderer
         gen++;
     }
 
@@ -92,21 +96,19 @@ public class GameManager : MonoBehaviour
         return pathLength;
     }
 
-    private List<Vector3> Selection()
+    private List<int> Selection()
     {
         // Random
         int indexP1 = Random.Range(0, currentCities.Count);
         int indexP2 = Random.Range(0, currentCities.Count);
 
-        Vector3 city1 = currentCities[indexP1];
-        Vector3 city2 = currentCities[indexP2];
-        
-        return new List<Vector3>(new []{city1, city2});
+        return new List<int>(new []{indexP1, indexP2});
     }
 
-    private void Croisement(List<Vector3> selectedCities)
+    // Permute les 2 index de currentCities
+    private void Croisement(List<int> selectedCitiesIndex)
     {
-        
+        (currentCities[selectedCitiesIndex[0]], currentCities[selectedCitiesIndex[1]]) = (currentCities[selectedCitiesIndex[1]], currentCities[selectedCitiesIndex[0]]);
     }
 
     private void Mutation()
