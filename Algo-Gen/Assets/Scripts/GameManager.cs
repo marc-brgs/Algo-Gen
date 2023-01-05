@@ -37,7 +37,8 @@ public class GameManager : MonoBehaviour
 
     public TextMeshProUGUI textBestGen;
     public TextMeshProUGUI textBestFitness;
-
+    public TextMeshProUGUI textCurrentGen;
+    
     private void Awake() 
     {
         if (instance != null && instance != this) 
@@ -75,10 +76,9 @@ public class GameManager : MonoBehaviour
             textBestGen.text = "BEST GEN: " + bestGen;
             textBestFitness.text = "BEST FITNESS: " + bestFitness;
         }
-        
+        textCurrentGen.text = "CURRENT GEN: " + generation;
+            
         UpdateLines();
-        
-        Debug.Log(generation);
     }
 
     private void UpdateLines()
@@ -97,7 +97,6 @@ public class GameManager : MonoBehaviour
     
     public Population EvolePopulation(Population pop)
     {
-        Debug.Log(villes);
         Population newPop = new Population(villes, pop.individus.Count);
         int elitismeOffset = 0;
         if (elitisme)
