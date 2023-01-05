@@ -1,13 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using TMPro;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public int popSize = 10;
-    public GameObject cityPrefab;
+    public static GameManager instance;
     
-    private int gen = 0;
+    public int numVille = 100;
+    
+    public int popSize = 50;
+    
+    public GameObject cityPrefab;
+
+    private List<Vector3> villes;
+    public float tauxMutation = 0.015f;
+    public int tailleTournoi = 5;
+    public bool elitisme = true;
+    
+    private int generation = 0;
     private List<Vector3> currentCities = new List<Vector3>();
     private List<Vector3> bestCities = new List<Vector3>();
     private int bestGen = 0;
@@ -18,45 +30,104 @@ public class GameManager : MonoBehaviour
 
     public float MAX_WIDTH;
     public float MAX_HEIGHT;
+
+    private Population pop;
+    private List<Vector3> currentPopFittest;
+    private List<Vector3> fittest;
+
+    public TextMeshProUGUI textBestGen;
+    public TextMeshProUGUI textBestFitness;
+
+    private void Awake() 
+    {
+        if (instance != null && instance != this) 
+        { 
+            Destroy(this); 
+        } 
+        else 
+        { 
+            instance = this;
+        } 
+    }
     
     // Start is called before the first frame update
     void Start()
     {
         InitiatePopulation();
-        Debug.Log(fitness());
+
+        pop = new Population(villes, popSize, true);
+        pop = EvolePopulation(pop);
+        generation++;
     }
 
     // Update is called once per frame
     void Update()
     {
-        // Sélection
-        List<int> selectedCitiesIndex;
-        selectedCitiesIndex = Selection();
-        
-        // Croisement
-        Croisement(selectedCitiesIndex);
-        
-        // Mutation
-        Mutation();
-        
-        // Evaluation de la solution finale
-        float currentFitness = fitness();
-        if (currentFitness < bestFitness)
-        {
-            bestFitness = fitness();
-            bestGen = gen;
+        pop = EvolePopulation(pop);
+        generation++;
 
-            bestCities = currentCities;
-            bestLine.SetPositions(bestCities.ToArray());
+        currentPopFittest = pop.individus[Random.Range(0, pop.individus.Count)];
+        if (GetFitness(currentPopFittest) > GetFitness(fittest))
+        {
+            fittest = pop.GetFittest();
+            bestFitness = GetFitness(fittest);
+            bestGen = generation;
+            textBestGen.text = "BEST GEN: " + bestGen;
+            textBestFitness.text = "BEST FITNESS: " + bestFitness;
         }
         
-        currentLine.SetPositions(currentCities.ToArray()); // Update line renderer
-        gen++;
+        UpdateLines();
+        
+        Debug.Log(generation);
     }
+
+    private void UpdateLines()
+    {
+        currentLine.positionCount = numVille;
+        currentLine.SetPositions(currentPopFittest.ToArray());
+        
+        bestLine.positionCount = numVille;
+        bestLine.SetPositions(fittest.ToArray());
+    }
+
+    private void UpdateUIBest()
+    {
+        
+    }
+    
+    public Population EvolePopulation(Population pop)
+    {
+        Debug.Log(villes);
+        Population newPop = new Population(villes, pop.individus.Count);
+        int elitismeOffset = 0;
+        if (elitisme)
+        {
+            newPop.individus[0] = pop.GetFittest();
+            elitismeOffset = 1;
+        }
+        
+        // Selection et crossover
+        for (int i = elitismeOffset; i < newPop.individus.Count; i++)
+        {
+            List<Vector3> parent1 = SelectionTournoi(pop);
+            List<Vector3> parent2 = SelectionTournoi(pop);
+            List<Vector3> enfant = Crossover(parent1, parent2);
+            newPop.individus[i] = enfant;
+        }
+        
+        // Mutation
+        for (int i = elitismeOffset; i < newPop.individus.Count; i++)
+        {
+            Mutation(newPop.individus[i]);
+        }
+        
+        return newPop;
+    }
+
 
     private void InitiatePopulation()
     {
-        for (int i = 0; i < popSize; i++)
+        for (int i = 0; i < numVille; i++)
         {
             float xPos = Random.Range(-MAX_WIDTH, MAX_WIDTH);
             float zPos = Random.Range(-MAX_HEIGHT, MAX_HEIGHT);
@@ -65,54 +136,124 @@ public class GameManager : MonoBehaviour
             
             currentCities.Add(new Vector3(xPos, 0f, zPos));
         }
-
-        bestCities = currentCities;
         
-        currentLine.positionCount = popSize;
+        bestCities = currentCities;
+        villes = currentCities;
+        
+        // Affichage
+        currentLine.positionCount = numVille;
         currentLine.SetPositions(currentCities.ToArray());
         
-        bestLine.positionCount = popSize;
+        bestLine.positionCount = numVille;
         bestLine.SetPositions(bestCities.ToArray());
     }
 
-    /*
-     * Return total length of the path
-     */
-    private float fitness()
+    private List<Vector3> Crossover(List<Vector3> parent1, List<Vector3> parent2)
     {
-        float pathLength = 0f;
-        for (int i = 0; i < popSize - 1; i++)
+        List<Vector3?> enfant = new List<Vector3?>();
+        
+        Vector3? nullableVec = null;
+        
+        for (int i = 0; i < villes.Count; i++)
         {
-            pathLength += Vector3.Distance(currentCities[i], currentCities[i + 1]);
+            enfant.Add(nullableVec);
+        }
+
+        int startPos = Random.Range(0, parent1.Count);
+        int endPos = Random.Range(0, parent1.Count);
+
+        for (int i = 0; i < enfant.Count; i++)
+        {
+            if (startPos < endPos && i > startPos && i < endPos)
+            {
+                enfant[i] = parent1[i];
+            }
+            else if(startPos > endPos)
+            {
+                if (!(i < startPos && i > endPos))
+                {
+                    enfant[i] = parent1[i];
+                }
+            }
+        }
+
+        for (int i = 0; i < parent2.Count; i++)
+        {
+            if (!(enfant.Contains(parent2[i])))
+            {
+                for (int j = 0; j < enfant.Count; j++)
+                {
+                    if (enfant[j] == null)
+                    {
+                        enfant[j] = parent2[i];
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return enfant.Cast<Vector3>().ToList(); // Cast to non nullable Vector3
+    }
+    
+    private void Mutation(List<Vector3> individu)
+    {
+        if (!(Random.Range(0f, 1f) < tauxMutation)) return;
+        
+        int ville1Index = Random.Range(0, individu.Count);
+        int ville2Index = Random.Range(0, individu.Count);
+        (individu[ville1Index], individu[ville2Index]) = (individu[ville2Index], individu[ville1Index]);
+    }
+
+    /**
+     * Return the best solution from a sample of the current population
+     */
+    private List<Vector3> SelectionTournoi(Population pop)
+    {
+        Population tournoi = new Population(villes, tailleTournoi);
+        
+        for (int i = 0; i < tailleTournoi; i++)
+        {
+            int villeIndex = Random.Range(0, pop.individus.Count);
+            tournoi.individus[i] = pop.individus[villeIndex];
+        }
+
+        return tournoi.GetFittest();
+    }
+    
+    /*
+     * Return score of path which is equivalent to 1 / total length of the path
+     */
+    public float GetFitness(List<Vector3> individu)
+    {
+        if (individu == null) return 0f;
+        float pathLength = 0f;
+        for (int i = 0; i < individu.Count - 1; i++)
+        {
+            pathLength += Vector3.Distance(individu[i], individu[i + 1]);
         }
         
         // Close path loop
-        if (popSize > 1)
+        if (individu.Count > 1)
         {
-            pathLength += Vector3.Distance(currentCities[popSize - 1], currentCities[0]); 
+            pathLength += Vector3.Distance(individu[individu.Count - 1], individu[0]); 
         }
         
-
-        return pathLength;
+        return 1 / pathLength;
     }
-
-    private List<int> Selection()
+    
+    /**
+     * Shuffle
+     */
+    public List<Vector3> GenererIndividu(List<Vector3> villes)
     {
-        // Random
-        int indexP1 = Random.Range(0, currentCities.Count);
-        int indexP2 = Random.Range(0, currentCities.Count);
+        List<Vector3> vTemp = villes;
+        for (int i = 0; i < vTemp.Count; i++) {
+            Vector3 temp = vTemp[i];
+            int randomIndex = Random.Range(i, vTemp.Count);
+            vTemp[i] = vTemp[randomIndex];
+            vTemp[randomIndex] = temp;
+        }
 
-        return new List<int>(new []{indexP1, indexP2});
-    }
-
-    // Permute les 2 index de currentCities
-    private void Croisement(List<int> selectedCitiesIndex)
-    {
-        (currentCities[selectedCitiesIndex[0]], currentCities[selectedCitiesIndex[1]]) = (currentCities[selectedCitiesIndex[1]], currentCities[selectedCitiesIndex[0]]);
-    }
-
-    private void Mutation()
-    {
-        
+        return vTemp;
     }
 }

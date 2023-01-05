@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -283,8 +283,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c94c17f1f6f2ad94d8b614e3bfce75a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  popSize: 9
+  numVille: 40
+  popSize: 100
   cityPrefab: {fileID: 4920423157592671978, guid: f1fc575bcad9452459eeb4f5c3e09c79, type: 3}
+  tauxMutation: 0.2
+  tailleTournoi: 10
+  elitisme: 1
   currentLine: {fileID: 1331241691}
   bestLine: {fileID: 143368007}
   MAX_WIDTH: 8
