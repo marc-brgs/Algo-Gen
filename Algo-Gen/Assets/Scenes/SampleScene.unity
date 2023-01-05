@@ -153,6 +153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   popSize: 10
+  cityPrefab: {fileID: 4920423157592671978, guid: f1fc575bcad9452459eeb4f5c3e09c79, type: 3}
   lineRenderer: {fileID: 1331241691}
   MAX_WIDTH: 8
   MAX_HEIGHT: 4.5
