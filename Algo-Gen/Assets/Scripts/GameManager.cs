@@ -89,41 +89,7 @@ public class GameManager : MonoBehaviour
         bestLine.positionCount = numVille;
         bestLine.SetPositions(fittest.ToArray());
     }
-
-    private void UpdateUIBest()
-    {
-        
-    }
     
-    public Population EvolePopulation(Population pop)
-    {
-        Population newPop = new Population(villes, pop.individus.Count);
-        int elitismeOffset = 0;
-        if (elitisme)
-        {
-            newPop.individus[0] = pop.GetFittest();
-            elitismeOffset = 1;
-        }
-        
-        // Selection et crossover
-        for (int i = elitismeOffset; i < newPop.individus.Count; i++)
-        {
-            List<Vector3> parent1 = SelectionTournoi(pop);
-            List<Vector3> parent2 = SelectionTournoi(pop);
-            List<Vector3> enfant = Crossover(parent1, parent2);
-            newPop.individus[i] = enfant;
-        }
-        
-        // Mutation
-        for (int i = elitismeOffset; i < newPop.individus.Count; i++)
-        {
-            Mutation(newPop.individus[i]);
-        }
-        
-        return newPop;
-    }
-
-
     private void InitiatePopulation()
     {
         for (int i = 0; i < numVille; i++)
@@ -146,10 +112,51 @@ public class GameManager : MonoBehaviour
         bestLine.positionCount = numVille;
         bestLine.SetPositions(bestCities.ToArray());
     }
+    
+    public Population EvolePopulation(Population pop)
+    {
+        Population newPop = new Population(villes, pop.individus.Count);
+        int elitismeOffset = 0;
+        if (elitisme)
+        {
+            newPop.individus[0] = pop.GetFittest();
+            elitismeOffset = 1;
+        }
+        
+        // Selection et crossover
+        for (int i = elitismeOffset; i < newPop.individus.Count; i++)
+        {
+            List<Vector3> parent1 = SelectionTournoi(pop);
+            // parent1[parent1.Count - 1] = new Vector3(0f, 0f, 0f);
+            List<Vector3> parent2 = SelectionTournoi(pop);
+            List<Vector3> enfant = Crossover(parent1, parent2);
+            newPop.individus[i] = enfant;
+        }
+        
+        // Mutation
+        for (int i = elitismeOffset; i < newPop.individus.Count; i++)
+        {
+            Mutation(newPop.individus[i]);
+        }
+        
+        return newPop;
+    }
 
     private List<Vector3> Crossover(List<Vector3> parent1, List<Vector3> parent2)
     {
         List<Vector3?> enfant = new List<Vector3?>();
+
+        /*Debug.Log("PARENT1:");
+        for (int i = 0; i < parent1.Count; i++)
+        {
+            Debug.Log(parent1[i].ToString());
+        }
+
+        Debug.Log("PARENT2:");
+        for (int i = 0; i < parent2.Count; i++)
+        {
+            Debug.Log(parent2[i].ToString());
+        }*/
         
         Vector3? nullableVec = null;
         
@@ -190,17 +197,38 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+
+        /*Debug.Log("ENFANT");
+        for (int i = 0; i < enfant.Count; i++)
+        {
+            Debug.Log(enfant[i].ToString());
+        }*/
         
         return enfant.Cast<Vector3>().ToList(); // Cast to non nullable Vector3
     }
     
     private void Mutation(List<Vector3> individu)
     {
-        if (!(Random.Range(0f, 1f) < tauxMutation)) return;
+        if (!(Random.Range(0f, 1f) < tauxMutation) && tauxMutation < 1f) return;
         
-        int ville1Index = Random.Range(0, individu.Count);
-        int ville2Index = Random.Range(0, individu.Count);
-        (individu[ville1Index], individu[ville2Index]) = (individu[ville2Index], individu[ville1Index]);
+        // Double permutation
+        if (tauxMutation >= 1f)
+        {
+            int ville1Index = Random.Range(0, individu.Count);
+            int ville1IndexPlus = Random.Range(0, individu.Count);
+            
+            int ville2Index = Random.Range(0, individu.Count);
+            int ville2IndexPlus = Random.Range(0, individu.Count);
+            
+            (individu[ville1Index], individu[ville2Index]) = (individu[ville2Index], individu[ville1Index]);
+            (individu[ville1IndexPlus], individu[ville2IndexPlus]) = (individu[ville2IndexPlus], individu[ville1IndexPlus]);
+        }
+        else // simple permutation
+        {
+            int ville1Index = Random.Range(0, individu.Count);
+            int ville2Index = Random.Range(0, individu.Count);
+            (individu[ville1Index], individu[ville2Index]) = (individu[ville2Index], individu[ville1Index]);
+        }
     }
 
     /**
@@ -214,9 +242,40 @@ public class GameManager : MonoBehaviour
         {
             int villeIndex = Random.Range(0, pop.individus.Count);
             tournoi.individus[i] = pop.individus[villeIndex];
+            // Debug.Log("SELECTION: " + tournoi.individus[i].ToString());
         }
 
         return tournoi.GetFittest();
+    }
+    
+    private List<Vector3> SelectionRoulette(Population pop)
+    {
+        // Calcule la somme totale des fitness
+        float totalFitness = 0;
+        for(int i = 0; i < pop.individus.Count; i++)
+        {
+            totalFitness += GetFitness(pop.individus[i]);
+        }
+
+        // Sélectionne numIndividuals individus par roulette
+        List<Vector3> selectedIndividuals = new List<Vector3>();
+
+        // Génère un nombre aléatoire compris entre 0 et la somme totale des fitness
+        float randomFitness = Random.Range(0, totalFitness);
+
+        // Parcoure la liste des individus et sélectionne l'individu actuel si sa fitness cumulée dépasse
+        // le nombre aléatoire généré
+        float cumulativeFitness = 0;
+        for(int i = 0; i < pop.individus.Count; i++) {
+            cumulativeFitness += GetFitness(pop.individus[i]);
+            if (cumulativeFitness > randomFitness)
+            { 
+                selectedIndividuals = pop.individus[i];
+                break;
+            }
+        }
+
+        return selectedIndividuals;
     }
     
     /*
