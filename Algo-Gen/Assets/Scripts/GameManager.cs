@@ -145,19 +145,6 @@ public class GameManager : MonoBehaviour
     private List<Vector3> Crossover(List<Vector3> parent1, List<Vector3> parent2)
     {
         List<Vector3?> enfant = new List<Vector3?>();
-
-        /*Debug.Log("PARENT1:");
-        for (int i = 0; i < parent1.Count; i++)
-        {
-            Debug.Log(parent1[i].ToString());
-        }
-
-        Debug.Log("PARENT2:");
-        for (int i = 0; i < parent2.Count; i++)
-        {
-            Debug.Log(parent2[i].ToString());
-        }*/
-        
         Vector3? nullableVec = null;
         
         for (int i = 0; i < villes.Count; i++)
@@ -197,12 +184,6 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
-
-        /*Debug.Log("ENFANT");
-        for (int i = 0; i < enfant.Count; i++)
-        {
-            Debug.Log(enfant[i].ToString());
-        }*/
         
         return enfant.Cast<Vector3>().ToList(); // Cast to non nullable Vector3
     }
