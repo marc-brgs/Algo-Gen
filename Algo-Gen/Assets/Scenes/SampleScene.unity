@@ -455,7 +455,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numVille: 30
-  popSize: 500
+  popSize: 50
   cityPrefab: {fileID: 7713479934377597635, guid: e075b67e56ed0984da62ec50756400a0, type: 3}
   tauxMutation: 0.05
   tailleTournoi: 30
