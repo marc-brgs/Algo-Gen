@@ -454,11 +454,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c94c17f1f6f2ad94d8b614e3bfce75a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numVille: 40
+  numVille: 30
   popSize: 500
   cityPrefab: {fileID: 7713479934377597635, guid: e075b67e56ed0984da62ec50756400a0, type: 3}
   tauxMutation: 0.05
-  tailleTournoi: 10
+  tailleTournoi: 30
   elitisme: 1
   currentLine: {fileID: 1331241691}
   bestLine: {fileID: 143368007}
